@@ -9,9 +9,9 @@
     "start:dev": "nest start --watch",
     "start:prod": "node dist/main.js",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio",
-    "seed": "ts-node prisma/seed.ts"
+    "prisma:migrate": "node scripts/run-migrate.js",
+    "prisma:studio": "node scripts/run-with-migrate-url.js prisma studio",
+    "seed": "node scripts/run-with-migrate-url.js ts-node prisma/seed.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.3.0",
@@ -23,6 +23,10 @@
     "@nestjs/swagger": "^7.1.17",
     "@nestjs/event-emitter": "^2.0.3",
     "@prisma/client": "^5.8.1",
+    "dotenv": "^16.3.1",
+    "nest-winston": "^1.9.4",
+    "winston": "^3.11.0",
+    "winston-daily-rotate-file": "^4.7.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "bcrypt": "^5.1.1",
