@@ -44,6 +44,15 @@ export function withAuditExtension(
     events.emit(AUDIT_EVENT, event);
   };
 
+  // App-level append-only enforcement for the audit table. The DB itself
+  // should also REVOKE UPDATE/DELETE for production; this is defense in depth.
+  const APPEND_ONLY = new Set(['AuditLog']);
+  const blockIfAppendOnly = (model: string, op: string) => {
+    if (APPEND_ONLY.has(model)) {
+      throw new Error(`Operation '${op}' is forbidden on append-only model '${model}'`);
+    }
+  };
+
   return base.$extends({
     name: 'audit',
     query: {
@@ -60,6 +69,7 @@ export function withAuditExtension(
         },
 
         async update({ model, args, query }) {
+          blockIfAppendOnly(model, 'update');
           if (!isAudited(model)) return query(args);
           const before: any = await (reader as any)[lowerFirst(model)].findUnique({
             where: args.where,
@@ -75,6 +85,7 @@ export function withAuditExtension(
         },
 
         async upsert({ model, args, query }) {
+          blockIfAppendOnly(model, 'upsert');
           if (!isAudited(model)) return query(args);
           const before: any = await (reader as any)[lowerFirst(model)].findUnique({
             where: args.where,
@@ -92,6 +103,7 @@ export function withAuditExtension(
         },
 
         async delete({ model, args, query }) {
+          blockIfAppendOnly(model, 'delete');
           if (!isAudited(model)) return query(args);
           const before: any = await (reader as any)[lowerFirst(model)].findUnique({
             where: args.where,
@@ -105,6 +117,7 @@ export function withAuditExtension(
         },
 
         async updateMany({ model, args, query }) {
+          blockIfAppendOnly(model, 'updateMany');
           if (!isAudited(model)) return query(args);
           const beforeRows: any[] = await (reader as any)[lowerFirst(model)].findMany({
             where: args.where,
@@ -134,6 +147,7 @@ export function withAuditExtension(
         },
 
         async deleteMany({ model, args, query }) {
+          blockIfAppendOnly(model, 'deleteMany');
           if (!isAudited(model)) return query(args);
           const beforeRows: any[] = await (reader as any)[lowerFirst(model)].findMany({
             where: args.where,

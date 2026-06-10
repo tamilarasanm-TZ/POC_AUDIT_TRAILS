@@ -63,8 +63,15 @@ export class AuditInterceptor implements NestInterceptor {
 
 function extractIp(req: any): string | null {
   const fwd = req.headers['x-forwarded-for'];
-  if (typeof fwd === 'string') return fwd.split(',')[0].trim();
-  return req.ip ?? req.socket?.remoteAddress ?? null;
+  if (typeof fwd === 'string') return normalizeIp(fwd.split(',')[0].trim());
+  return normalizeIp(req.ip ?? req.socket?.remoteAddress ?? null);
+}
+
+function normalizeIp(ip: string | null | undefined): string | null {
+  if (!ip) return null;
+  if (ip === '::1') return '127.0.0.1';
+  if (ip.startsWith('::ffff:')) return ip.slice(7);
+  return ip;
 }
 
 function sanitize(obj: any): any {

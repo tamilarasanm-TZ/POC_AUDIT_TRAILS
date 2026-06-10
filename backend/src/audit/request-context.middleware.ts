@@ -27,6 +27,16 @@ export class RequestContextMiddleware implements NestMiddleware {
 
 function extractIp(req: Request): string | null {
   const fwd = req.headers['x-forwarded-for'];
-  if (typeof fwd === 'string') return fwd.split(',')[0].trim();
-  return req.ip ?? req.socket?.remoteAddress ?? null;
+  if (typeof fwd === 'string') return normalizeIp(fwd.split(',')[0].trim());
+  return normalizeIp(req.ip ?? req.socket?.remoteAddress ?? null);
+}
+
+// Convert IPv6 loopback / IPv4-mapped addresses to plain IPv4 for readability.
+// '::1'              → '127.0.0.1'
+// '::ffff:192.0.2.5' → '192.0.2.5'
+function normalizeIp(ip: string | null | undefined): string | null {
+  if (!ip) return null;
+  if (ip === '::1') return '127.0.0.1';
+  if (ip.startsWith('::ffff:')) return ip.slice(7);
+  return ip;
 }
