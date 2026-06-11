@@ -11,6 +11,7 @@ import { OrdersModule } from './orders/orders.module';
 import { AuditInterceptor } from './audit/audit.interceptor';
 import { RequestContextMiddleware } from './audit/request-context.middleware';
 import { LoggingMiddleware } from './common/logging.middleware';
+import { DebugController } from './common/debug.controller';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { LoggingMiddleware } from './common/logging.middleware';
     UsersModule,
     OrdersModule,
   ],
+  controllers: [DebugController],
   providers: [
     {
       provide: APP_INTERCEPTOR,

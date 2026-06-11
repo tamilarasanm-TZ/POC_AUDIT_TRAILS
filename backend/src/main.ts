@@ -6,6 +6,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { WinstonModule } from 'nest-winston';
 import { AppModule } from './app.module';
 import { loggerOptions } from './common/logger.config';
+import { StructuredExceptionFilter } from './common/structured-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -26,6 +27,10 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({ whitelist: true, transform: true, forbidNonWhitelisted: false }),
   );
+
+  // Catches every uncaught HTTP/runtime exception and writes a structured
+  // ErrorLog JSON line (errorCode, stackTrace, requestId, userId, ip, ...).
+  app.useGlobalFilters(new StructuredExceptionFilter());
 
   const config = new DocumentBuilder()
     .setTitle('Audit Trails POC API')

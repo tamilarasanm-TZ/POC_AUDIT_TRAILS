@@ -12,7 +12,22 @@ import * as path from 'path';
 
 const logsDir = path.resolve(process.cwd(), 'logs');
 
+// When middleware / filters call logger.log(obj) with a structured payload,
+// Winston puts the object under the `message` key. This format detects that
+// case and "lifts" the inner fields up so the JSON line matches the shape
+// produced by the middleware/filter directly.
+const flattenStructured = winston.format((info) => {
+  const msg: any = (info as any).message;
+  if (msg && typeof msg === 'object' && !Array.isArray(msg)) {
+    // Preserve everything from the structured payload, falling back to
+    // Winston's own timestamp/level if the payload didn't set them.
+    return { ...info, ...msg };
+  }
+  return info;
+})();
+
 const fileFormat = winston.format.combine(
+  flattenStructured,
   winston.format.timestamp(),
   winston.format.errors({ stack: true }),
   winston.format.json(),
